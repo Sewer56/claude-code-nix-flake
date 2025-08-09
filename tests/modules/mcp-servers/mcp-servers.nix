@@ -8,7 +8,7 @@
     enable = true;
     package = null;
     # Test MCP servers configuration
-    # NOTE: This demonstrates REPLACEMENT behavior for the mcpServers object.
+    # NOTE: This demonstrates REPLACEMENT behaviour for the mcpServers object.
     # The entire mcpServers object from the existing file is merged with new servers,
     # but individual server configurations completely replace any existing ones with the same name.
     mcpServers = {

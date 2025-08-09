@@ -8,7 +8,7 @@
     enable = true;
     package = null;
     # Test settings.json configuration
-    # NOTE: This demonstrates REPLACEMENT behavior for nested objects/arrays.
+    # NOTE: This demonstrates REPLACEMENT behaviour for nested objects/arrays.
     # The permissions.allow and permissions.deny arrays from the existing file
     # are completely REPLACED (not merged) with the new values specified here.
     # Only top-level fields like newField are merged/added to existing content.
