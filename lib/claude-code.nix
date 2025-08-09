@@ -167,12 +167,11 @@ in {
 
     home.activation.backupExistingClaudeFiles = mkIf (!cfg.skipBackup) (
       lib.hm.dag.entryAfter ["linkGeneration"] ''
-        if [ -n "$HOME_MANAGER_BACKUP_EXT" ]; then
-          CLAUDE_DIR="${baseDir}/.claude"
-          CLAUDE_MEMORY_FILE="$CLAUDE_DIR/CLAUDE.md"
+        CLAUDE_DIR="${baseDir}/.claude"
+        CLAUDE_MEMORY_FILE="$CLAUDE_DIR/CLAUDE.md"
 
-          BACKUP_EXT="$HOME_MANAGER_BACKUP_EXT"
-          echo "Using backup extension: .$BACKUP_EXT"
+        BACKUP_EXT="''${HOME_MANAGER_BACKUP_EXT:-hm-bak}"
+        echo "Using backup extension: .$BACKUP_EXT"
 
         ${
           if cfg.memory.source != null || cfg.memory.text != null
@@ -196,7 +195,6 @@ in {
           ''
           else ""
         }
-        fi
       ''
     );
 
