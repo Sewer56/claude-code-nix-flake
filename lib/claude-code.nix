@@ -4,19 +4,15 @@
   pkgs,
   ...
 }:
-
-with lib;
-
-let
+with lib; let
   cfg = config.programs.claude-code;
-in
-{
+in {
   options.programs.claude-code = {
     enable = mkEnableOption "Claude Code configuration";
 
     commands = mkOption {
       type = types.listOf types.path;
-      default = [ ];
+      default = [];
       description = "List of file paths to be copied to ~/.claude/commands/. These take precedence over files from commandsDir.";
     };
 
@@ -34,7 +30,7 @@ in
     };
 
     memory = mkOption {
-      default = { };
+      default = {};
       description = "Configuration for Claude's memory file at ~/.claude/CLAUDE.md";
       type = types.submodule {
         options = {
@@ -55,7 +51,7 @@ in
 
     mcpServers = mkOption {
       type = types.attrsOf types.anything;
-      default = { };
+      default = {};
       description = ''
         An attrset of MCP server configurations to merge into ~/.claude.json.
         The entire attrset will be merged into the JSON file as the "mcpServers" field.
@@ -87,7 +83,7 @@ in
       default = false;
       description = ''
         Whether to clean out existing files before applying configuration.
-        When true, the module will remove all files in ~/.claude/commands/ 
+        When true, the module will remove all files in ~/.claude/commands/
         and delete ~/.claude/CLAUDE.md before copying/creating new files.
       '';
     };
@@ -113,7 +109,7 @@ in
     home.packages = lib.optional (cfg.package != null) cfg.package;
 
     home.activation.backupExistingClaudeFiles = mkIf (!cfg.skipBackup) (
-      lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      lib.hm.dag.entryAfter ["writeBoundary"] ''
         if [ -n "$HOME_MANAGER_BACKUP_EXT" ]; then
           CLAUDE_DIR="$HOME/.claude"
           CLAUDE_MEMORY_FILE="$CLAUDE_DIR/CLAUDE.md"
@@ -122,66 +118,62 @@ in
           echo "Using backup extension: .$BACKUP_EXT"
 
         ${
-          if cfg.memory.source != null || cfg.memory.text != null then
-            ''
-               if [ -f "$CLAUDE_MEMORY_FILE" ]; then
-                 echo "Backing up existing memory file..."
-                 $DRY_RUN_CMD mv "$CLAUDE_MEMORY_FILE" "$CLAUDE_MEMORY_FILE.$BACKUP_EXT"
-               fi
-            ''
-          else
-            ""
+          if cfg.memory.source != null || cfg.memory.text != null
+          then ''
+            if [ -f "$CLAUDE_MEMORY_FILE" ]; then
+              echo "Backing up existing memory file..."
+              $DRY_RUN_CMD mv "$CLAUDE_MEMORY_FILE" "$CLAUDE_MEMORY_FILE.$BACKUP_EXT"
+            fi
+          ''
+          else ""
         }
 
         ${
-          if cfg.commands != [ ] || cfg.commandsDir != null then
-            ''
-               CLAUDE_COMMANDS_DIR="$CLAUDE_DIR/commands"
-               if [ -d "$CLAUDE_COMMANDS_DIR" ]; then
-                 echo "Backing up existing commands directory..."
-                 $DRY_RUN_CMD mv "$CLAUDE_COMMANDS_DIR" "$CLAUDE_COMMANDS_DIR.$BACKUP_EXT"
-               fi
-            ''
-          else
-            ""
+          if cfg.commands != [] || cfg.commandsDir != null
+          then ''
+            CLAUDE_COMMANDS_DIR="$CLAUDE_DIR/commands"
+            if [ -d "$CLAUDE_COMMANDS_DIR" ]; then
+              echo "Backing up existing commands directory..."
+              $DRY_RUN_CMD mv "$CLAUDE_COMMANDS_DIR" "$CLAUDE_COMMANDS_DIR.$BACKUP_EXT"
+            fi
+          ''
+          else ""
         }
         fi
       ''
     );
 
     home.activation.forceCleanClaudeConfig = mkIf cfg.forceClean (
-      lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      lib.hm.dag.entryAfter ["writeBoundary"] ''
         CLAUDE_DIR="$HOME/.claude"
         CLAUDE_MEMORY_FILE="$CLAUDE_DIR/CLAUDE.md"
         CLAUDE_COMMANDS_DIR="$CLAUDE_DIR/commands"
 
         ${
-          if cfg.memory.source != null || cfg.memory.text != null then
-            ''
-              if [ -f "$CLAUDE_MEMORY_FILE" ]; then
-                echo "Cleaning memory file..."
-                $DRY_RUN_CMD rm -f "$CLAUDE_MEMORY_FILE"
-              fi
-            ''
-          else
-            ""
+          if cfg.memory.source != null || cfg.memory.text != null
+          then ''
+            if [ -f "$CLAUDE_MEMORY_FILE" ]; then
+              echo "Cleaning memory file..."
+              $DRY_RUN_CMD rm -f "$CLAUDE_MEMORY_FILE"
+            fi
+          ''
+          else ""
         }
 
         ${
-          if cfg.commands != [ ] || cfg.commandsDir != null then
-            ''
-              if [ -d "$CLAUDE_COMMANDS_DIR" ]; then
-                echo "Cleaning up existing commands directory..."
-                $DRY_RUN_CMD rm -rf "$CLAUDE_COMMANDS_DIR"
-              fi
-            ''
-          else
-            ""
+          if cfg.commands != [] || cfg.commandsDir != null
+          then ''
+            if [ -d "$CLAUDE_COMMANDS_DIR" ]; then
+              echo "Cleaning up existing commands directory..."
+              $DRY_RUN_CMD rm -rf "$CLAUDE_COMMANDS_DIR"
+            fi
+          ''
+          else ""
         }
       ''
     );
 
-    home.activation.setupClaudeCommands = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    home.activation.setupClaudeCommands = lib.hm.dag.entryAfter ["writeBoundary"] ''
       CLAUDE_DIR="$HOME/.claude"
       CLAUDE_COMMANDS_DIR="$CLAUDE_DIR/commands"
 
@@ -192,34 +184,35 @@ in
 
       # First, copy markdown files from commandsDir if specified
       ${
-        if cfg.commandsDir != null then
-          ''
-            # Find all .md files and copy them using install to set permissions properly
-            for CMD_FILE in $(find "${cfg.commandsDir}" -type f -name "*.md"); do
-              DEST_FILE="$CLAUDE_COMMANDS_DIR/$(basename "$CMD_FILE")"
-              $DRY_RUN_CMD install -m 0644 "$CMD_FILE" "$DEST_FILE"
-            done
-          ''
-        else
-          ''
-            # No commandsDir specified, skipping
-          ''
+        if cfg.commandsDir != null
+        then ''
+          # Find all .md files and copy them using install to set permissions properly
+          for CMD_FILE in $(find "${cfg.commandsDir}" -type f -name "*.md"); do
+            DEST_FILE="$CLAUDE_COMMANDS_DIR/$(basename "$CMD_FILE")"
+            $DRY_RUN_CMD install -m 0644 "$CMD_FILE" "$DEST_FILE"
+          done
+        ''
+        else ''
+          # No commandsDir specified, skipping
+        ''
       }
 
       ${concatMapStringsSep "\n" (
-        commandPath:
-        let
-          filename = builtins.baseNameOf commandPath;
-          parts = builtins.match "^[^-]+-(.*)$" filename;
-          finalName = if parts == null then filename else builtins.elemAt parts 0;
-        in
-        ''
-          $DRY_RUN_CMD install -m 0644 "${commandPath}" "$CLAUDE_COMMANDS_DIR/${finalName}"
-        ''
-      ) cfg.commands}
+          commandPath: let
+            filename = builtins.baseNameOf commandPath;
+            parts = builtins.match "^[^-]+-(.*)$" filename;
+            finalName =
+              if parts == null
+              then filename
+              else builtins.elemAt parts 0;
+          in ''
+            $DRY_RUN_CMD install -m 0644 "${commandPath}" "$CLAUDE_COMMANDS_DIR/${finalName}"
+          ''
+        )
+        cfg.commands}
     '';
 
-    home.activation.setupClaudeMemory = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    home.activation.setupClaudeMemory = lib.hm.dag.entryAfter ["writeBoundary"] ''
       CLAUDE_DIR="$HOME/.claude"
       CLAUDE_MEMORY_FILE="$CLAUDE_DIR/CLAUDE.md"
 
@@ -228,27 +221,26 @@ in
 
       # Handle memory configuration
       ${
-        if cfg.memory.source != null then
-          ''
-            $DRY_RUN_CMD install -m 0644 "${cfg.memory.source}" "$CLAUDE_MEMORY_FILE"
-          ''
-        else if cfg.memory.text != null then
-          ''
-                      # Use a temporary file and install to ensure proper permissions
-                      $DRY_RUN_CMD cat > "$TMPDIR/claude_memory_temp.md" << 'EOF'
-            ${cfg.memory.text}
-            EOF
-                      $DRY_RUN_CMD install -m 0644 "$TMPDIR/claude_memory_temp.md" "$CLAUDE_MEMORY_FILE"
-                      $DRY_RUN_CMD rm -f "$TMPDIR/claude_memory_temp.md"
-          ''
-        else
-          ''
-            # Neither source nor text was set, do nothing
-          ''
+        if cfg.memory.source != null
+        then ''
+          $DRY_RUN_CMD install -m 0644 "${cfg.memory.source}" "$CLAUDE_MEMORY_FILE"
+        ''
+        else if cfg.memory.text != null
+        then ''
+                    # Use a temporary file and install to ensure proper permissions
+                    $DRY_RUN_CMD cat > "$TMPDIR/claude_memory_temp.md" << 'EOF'
+          ${cfg.memory.text}
+          EOF
+                    $DRY_RUN_CMD install -m 0644 "$TMPDIR/claude_memory_temp.md" "$CLAUDE_MEMORY_FILE"
+                    $DRY_RUN_CMD rm -f "$TMPDIR/claude_memory_temp.md"
+        ''
+        else ''
+          # Neither source nor text was set, do nothing
+        ''
       }
     '';
 
-    home.activation.setupClaudeMcpServers = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    home.activation.setupClaudeMcpServers = lib.hm.dag.entryAfter ["writeBoundary"] ''
       CLAUDE_DIR="$HOME/.claude"
       CLAUDE_CONFIG_FILE="$HOME/.claude.json"
 
@@ -259,37 +251,36 @@ in
 
       # If mcpServers configuration is not empty
       ${
-        if cfg.mcpServers != { } then
-          ''
-                      # Check if the config file exists
-                      if [ -f "$CLAUDE_CONFIG_FILE" ]; then
-                        # Read existing JSON config
-                        EXISTING_CONFIG=$($DRY_RUN_CMD cat "$CLAUDE_CONFIG_FILE" || echo "{}")
-                      else
-                        # Create a new config with empty object
-                        EXISTING_CONFIG="{}"
-                      fi
+        if cfg.mcpServers != {}
+        then ''
+                    # Check if the config file exists
+                    if [ -f "$CLAUDE_CONFIG_FILE" ]; then
+                      # Read existing JSON config
+                      EXISTING_CONFIG=$($DRY_RUN_CMD cat "$CLAUDE_CONFIG_FILE" || echo "{}")
+                    else
+                      # Create a new config with empty object
+                      EXISTING_CONFIG="{}"
+                    fi
 
-                      # Create a temporary file with the MCP server configuration
-                      NEW_MCP_CONFIG=$(cat <<'EOF'
-            ${builtins.toJSON { mcpServers = cfg.mcpServers; }}
-            EOF
-                      )
+                    # Create a temporary file with the MCP server configuration
+                    NEW_MCP_CONFIG=$(cat <<'EOF'
+          ${builtins.toJSON {mcpServers = cfg.mcpServers;}}
+          EOF
+                    )
 
-                      # Merge the configurations (preserving existing content and adding/updating mcpServers)
-                      MERGED_CONFIG=$($DRY_RUN_CMD ${pkgs.jq}/bin/jq -s '.[0] * .[1]' <(echo "$EXISTING_CONFIG") <(echo "$NEW_MCP_CONFIG"))
+                    # Merge the configurations (preserving existing content and adding/updating mcpServers)
+                    MERGED_CONFIG=$($DRY_RUN_CMD ${pkgs.jq}/bin/jq -s '.[0] * .[1]' <(echo "$EXISTING_CONFIG") <(echo "$NEW_MCP_CONFIG"))
 
-                      # Write the merged configuration to a temp file first
-                      $DRY_RUN_CMD echo "$MERGED_CONFIG" > "$TMPDIR/claude_config_temp.json"
-                      
-                      # Use install to set permissions and copy the file
-                      $DRY_RUN_CMD install -m 0644 "$TMPDIR/claude_config_temp.json" "$CLAUDE_CONFIG_FILE"
-                      $DRY_RUN_CMD rm -f "$TMPDIR/claude_config_temp.json"
-          ''
-        else
-          ''
-            # No MCP servers configured, do nothing
-          ''
+                    # Write the merged configuration to a temp file first
+                    $DRY_RUN_CMD echo "$MERGED_CONFIG" > "$TMPDIR/claude_config_temp.json"
+
+                    # Use install to set permissions and copy the file
+                    $DRY_RUN_CMD install -m 0644 "$TMPDIR/claude_config_temp.json" "$CLAUDE_CONFIG_FILE"
+                    $DRY_RUN_CMD rm -f "$TMPDIR/claude_config_temp.json"
+        ''
+        else ''
+          # No MCP servers configured, do nothing
+        ''
       }
     '';
   };

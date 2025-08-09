@@ -10,25 +10,19 @@
     };
   };
 
-  outputs =
-    {
-      self,
-      nixpkgs,
-      flake-utils,
-      home-manager,
-      ...
-    }:
+  outputs = {
+    self,
+    nixpkgs,
+    flake-utils,
+    ...
+  }:
     flake-utils.lib.eachDefaultSystem (
-      system:
-      let
+      system: let
         pkgs = nixpkgs.legacyPackages.${system};
-      in
-      {
+      in {
         packages.default = self.packages.${system}.claude-nix;
 
-        packages.claude-nix = pkgs.callPackage ./lib/package.nix { };
-
-        devShells.default = pkgs.mkShell { buildInputs = with pkgs; [ nixpkgs-fmt ]; };
+        packages.claude-nix = pkgs.callPackage ./lib/package.nix {};
       }
     )
     // {

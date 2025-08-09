@@ -1,5 +1,7 @@
-{ lib, stdenv }:
-
+{
+  lib,
+  stdenv,
+}:
 stdenv.mkDerivation {
   pname = "claude-nix";
   version = "0.1.0";
@@ -18,7 +20,7 @@ stdenv.mkDerivation {
     description = "Nix module for Claude Code configuration";
     license = licenses.mit;
     platforms = platforms.all;
-    maintainers = [ ];
+    maintainers = [];
     mainProgram = "claude";
   };
 }
