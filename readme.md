@@ -66,17 +66,17 @@ and a simple config:
 
 ## Configuration Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `enable` | boolean | `false` | Enable Claude Code configuration |
-| `commands` | list of paths | `[]` | Individual command files to copy to `~/.claude/commands/` |
-| `commandsDir` | path | `null` | Directory of markdown files to copy as commands |
-| `package` | package or null | `pkgs.claude-code` | Claude Code package to install (or null to not install) |
-| `forceClean` | boolean | `false` | Clean existing files before applying configuration |
-| `skipBackup` | boolean | `false` | Skips backing up files even if the -`b <backup-ext> option is set` |
-| `memory.text` | string | `null` | Content to write to `~/.claude/CLAUDE.md` |
-| `memory.source` | path | `null` | File to copy to `~/.claude/CLAUDE.md` (takes precedence over `text`) |
-| `mcpServers` | attrset | `{}` | MCP server configurations to merge into `~/.claude.json` |
+| Option          | Type            | Default            | Description                                                          |
+| --------------- | --------------- | ------------------ | -------------------------------------------------------------------- |
+| `enable`        | boolean         | `false`            | Enable Claude Code configuration                                     |
+| `commands`      | list of paths   | `[]`               | Individual command files to copy to `~/.claude/commands/`            |
+| `commandsDir`   | path            | `null`             | Directory of markdown files to copy as commands                      |
+| `package`       | package or null | `pkgs.claude-code` | Claude Code package to install (or null to not install)              |
+| `forceClean`    | boolean         | `false`            | Clean existing files before applying configuration                   |
+| `skipBackup`    | boolean         | `false`            | Skips backing up files even if the -`b <backup-ext> option is set`   |
+| `memory.text`   | string          | `null`             | Content to write to `~/.claude/CLAUDE.md`                            |
+| `memory.source` | path            | `null`             | File to copy to `~/.claude/CLAUDE.md` (takes precedence over `text`) |
+| `mcpServers`    | attrset         | `{}`               | MCP server configurations to merge into `~/.claude.json`             |
 
 
 ## Rationale and approach
@@ -89,14 +89,29 @@ Additionally, Claude writes to `~/.claude.json` so it can't be directly managed 
 
 ## Development
 
-```bash
-# Format code
-nix develop
-nixpkgs-fmt .
+This project uses [devenv](https://devenv.sh) for the development environment. To get started:
 
-# Run tests
-nix flake check
+### Prerequisites
+
+Install devenv by following the [getting started guide](https://devenv.sh/getting-started/).
+
+### Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/flyinggrizzly/claude-nix.git
+cd claude-nix
+
+# Enter the development environment (will install dependencies automatically)
+devenv shell
+# You may want to use e.g. `devenv shell zsh`, to enter non-bash shells.
 ```
+
+### Automatic Formatting
+
+All Nix files are automatically formatted with [Alejandra](https://github.com/kamadorueda/alejandra) when you commit changes within the shell. You can also format manually using the `format` command.
+
+For more information about devenv, see the [official documentation](https://devenv.sh).
 
 ## License
 
