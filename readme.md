@@ -72,14 +72,12 @@ and a simple config:
 | `mcpServers`    | attrset         | `{}`               | MCP server configurations to merge into `~/.claude.json`             |
 
 >[!CAUTION]
-> Claude [currently has a bug where it can't read symlinked files](https://github.com/anthropics/claude-code/issues/764),
-> so this module **does not manage its files using Nix's standard add-to-store-and-symlink approach. Instead it adds
-> them to the store, and then uses an activation script to **copy** the files to the right location. The main
-> consequence of this is that if you don't set the `forceClean` flag, removing e.g. a command from your config *won't
-> remove it from the produced config*.
+> Due to a [Claude bug with symlinked files](https://github.com/anthropics/claude-code/issues/764), this module copies files instead of symlinking them. **Removed commands won't be deleted from your config** unless you use `forceClean=true`.
 >
-> `forceClean` exists to work around this, by cleaning up all commands *before* the current ones are copied in, **but it
-> is not able to preserve any non-Nix-tracked commands**, so use it with caution, and create backups.
+> **Warning:** `forceClean` deletes ALL existing commands (including non-Nix ones) before adding new ones. Create backups first.
+
+>[!WARNING] 
+> **Configuration files are modified in-place.** This module directly edits your existing Claude Code configuration files.
 
 ## Rationale and approach
 
