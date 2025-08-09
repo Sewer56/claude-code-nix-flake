@@ -166,7 +166,7 @@ in {
     home.packages = lib.optional (cfg.package != null) cfg.package;
 
     home.activation.backupExistingClaudeFiles = mkIf (!cfg.skipBackup) (
-      lib.hm.dag.entryAfter ["writeBoundary"] ''
+      lib.hm.dag.entryAfter ["linkGeneration"] ''
         if [ -n "$HOME_MANAGER_BACKUP_EXT" ]; then
           CLAUDE_DIR="${baseDir}/.claude"
           CLAUDE_MEMORY_FILE="$CLAUDE_DIR/CLAUDE.md"
@@ -201,7 +201,7 @@ in {
     );
 
     home.activation.forceCleanClaudeConfig = mkIf cfg.forceClean (
-      lib.hm.dag.entryAfter ["writeBoundary"] ''
+      lib.hm.dag.entryAfter ["linkGeneration"] ''
         CLAUDE_DIR="${baseDir}/.claude"
         CLAUDE_MEMORY_FILE="$CLAUDE_DIR/CLAUDE.md"
         CLAUDE_COMMANDS_DIR="$CLAUDE_DIR/commands"
@@ -230,7 +230,7 @@ in {
       ''
     );
 
-    home.activation.setupClaudeCommands = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    home.activation.setupClaudeCommands = lib.hm.dag.entryAfter ["linkGeneration"] ''
       CLAUDE_DIR="${baseDir}/.claude"
       CLAUDE_COMMANDS_DIR="$CLAUDE_DIR/commands"
 
@@ -269,7 +269,7 @@ in {
         cfg.commands}
     '';
 
-    home.activation.setupClaudeMemory = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    home.activation.setupClaudeMemory = lib.hm.dag.entryAfter ["linkGeneration"] ''
       CLAUDE_DIR="${baseDir}/.claude"
       CLAUDE_MEMORY_FILE="$CLAUDE_DIR/CLAUDE.md"
 
@@ -297,7 +297,7 @@ in {
       }
     '';
 
-    home.activation.setupClaudeJsonConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    home.activation.setupClaudeJsonConfig = lib.hm.dag.entryAfter ["linkGeneration"] ''
       CLAUDE_DIR="${baseDir}/.claude"
       CLAUDE_CONFIG_FILE="${baseDir}/.claude.json"
 
@@ -347,7 +347,7 @@ in {
       }
     '';
 
-    home.activation.setupSettingsJsonConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    home.activation.setupSettingsJsonConfig = lib.hm.dag.entryAfter ["linkGeneration"] ''
       CLAUDE_DIR="${baseDir}/.claude"
       SETTINGS_FILE="$CLAUDE_DIR/settings.json"
 

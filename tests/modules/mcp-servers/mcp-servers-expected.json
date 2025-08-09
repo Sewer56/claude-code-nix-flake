@@ -1,0 +1,30 @@
+{
+  "mcpServers": {
+    "github": {
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "ghcr.io/github/github-mcp-server"
+      ],
+      "command": "docker",
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": ""
+      },
+      "type": "stdio"
+    },
+    "test-server": {
+      "args": [
+        "--test-mode"
+      ],
+      "command": "test-command",
+      "env": {
+        "TEST_VAR": "test-value"
+      },
+      "type": "stdio"
+    }
+  },
+  "theme": "dark-daltonized"
+}

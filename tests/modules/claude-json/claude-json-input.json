@@ -1,0 +1,16 @@
+{
+  "autoUpdates": true,
+  "mcpServers": {
+    "existing-server": {
+      "command": "existing-command",
+      "type": "stdio"
+    }
+  },
+  "numStartups": 100,
+  "theme": "light",
+  "tipsHistory": {
+    "existing-tip": 1,
+    "new-user-warmup": 5,
+    "shift-enter": 10
+  }
+}

@@ -5,7 +5,7 @@
 }: {
   programs.claude-code = {
     enable = true;
-    package = config.lib.test.mkStubPackage {};
+    package = null;
     memory.source = pkgs.writeText "memory-source.md" ''
       # Memory from Source File
 

@@ -29,6 +29,7 @@
     echo "🛠️  Available commands:"
     echo "  • format                - Format all Nix files manually"
     echo "  • run-tests             - Run NMT tests for the module"
+    echo "  • run-test <name>       - Run a specific NMT test"
     echo "  • git-add               - Stage all changes (git add .)"
     echo "  • git-commit [message]  - Commit with message (git commit -m)"
     echo "  • git-push              - Push to remote (git push)"
@@ -76,8 +77,31 @@
   scripts.run-tests.exec = ''
     echo "🧪 Running NMT tests for Claude Code module..."
     echo ""
-    cd tests
-    nix-shell default.nix
+    cd "${config.env.DEVENV_ROOT}/tests"
+    nix-shell -A run.all
+  '';
+
+  scripts.run-test.exec = ''
+    if [ $# -eq 0 ]; then
+      echo "❌ Error: Test name required"
+      echo "Usage: run-test <test-name>"
+      echo ""
+      echo "Available tests:"
+      echo "  • basic-commands"
+      echo "  • claude-json"
+      echo "  • commands-dir"
+      echo "  • disabled"
+      echo "  • mcp-servers"
+      echo "  • memory-source"
+      echo "  • memory-text"
+      echo "  • settings-json"
+      exit 1
+    fi
+
+    echo "🧪 Running NMT test: $1"
+    echo ""
+    cd "${config.env.DEVENV_ROOT}/tests"
+    nix-shell -A "run.$1"
   '';
 
   enterShell = ''

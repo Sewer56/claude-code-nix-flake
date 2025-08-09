@@ -1,7 +1,7 @@
 {config, ...}: {
   programs.claude-code = {
     enable = true;
-    package = config.lib.test.mkStubPackage {};
+    package = null;
     memory.text = ''
       # Memory from Text
 

@@ -5,7 +5,7 @@
 }: {
   programs.claude-code = {
     enable = true;
-    package = config.lib.test.mkStubPackage {};
+    package = null;
     commands = [
       (pkgs.writeText "test-command.md" ''
         # Test Command

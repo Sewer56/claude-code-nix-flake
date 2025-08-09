@@ -98,6 +98,57 @@ and a simple config:
 >[!WARNING] 
 > **Configuration files are modified in-place.** This module directly edits your existing Claude Code configuration files.
 
+## JSON Configuration Merging Behaviour
+
+When using `claudeJson` and `settingsJson` options, the module uses **replacement behaviour** for nested objects and arrays, not deep merging:
+
+- **Top-level fields**: New fields are added, existing fields are updated
+- **Nested objects/arrays**: Completely replaced with new values (not merged)
+
+### Example
+
+If your existing `~/.claude/settings.json` contains:
+```json
+{
+  "existingField": "existing-value",
+  "permissions": {
+    "allow": ["WebFetch(domain:existing.com)", "Bash(existing-command:*)"],
+    "deny": ["Bash(rm:*)"]
+  }
+}
+```
+
+And your Nix configuration specifies:
+```nix
+settingsJson = {
+  permissions = {
+    allow = ["WebFetch(domain:example.com)", "Bash(mkdir:*)"];
+    deny = ["Bash(rm -rf:*)"];
+  };
+  newField = "new-value";
+};
+```
+
+The result will be:
+```json
+{
+  "existingField": "existing-value",
+  "newField": "new-value",
+  "permissions": {
+    "allow": ["WebFetch(domain:example.com)", "Bash(mkdir:*)"],
+    "deny": ["Bash(rm -rf:*)"]
+  }
+}
+```
+
+Note how:
+- ✅ Top-level `existingField` is preserved
+- ✅ Top-level `newField` is added  
+- ⚠️  `permissions.allow` array is **completely replaced** (old values lost)
+- ⚠️  `permissions.deny` array is **completely replaced** (old values lost)
+
+This behaviour ensures predictable configuration management where your Nix specification defines the exact state of nested structures.
+
 ## Rationale and approach
 
 Claude [currently has a bug where it can't read symlinked files](https://github.com/anthropics/claude-code/issues/764),

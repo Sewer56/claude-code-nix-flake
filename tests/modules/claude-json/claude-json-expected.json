@@ -1,0 +1,29 @@
+{
+  "autoUpdates": false,
+  "mcpServers": {
+    "existing-server": {
+      "command": "existing-command",
+      "type": "stdio"
+    },
+    "test-server": {
+      "args": [
+        "--test-mode"
+      ],
+      "command": "test-command",
+      "env": {
+        "TEST_VAR": "test-value"
+      },
+      "type": "stdio"
+    }
+  },
+  "numStartups": 100,
+  "theme": "dark-daltonized",
+  "tipsHistory": {
+    "existing-tip": 1,
+    "new-user-warmup": 1,
+    "shift-enter": 201,
+    "memory-command": 194
+  },
+  "fallbackAvailableWarningThreshold": 0.2,
+  "newTopLevelField": "test-value"
+}

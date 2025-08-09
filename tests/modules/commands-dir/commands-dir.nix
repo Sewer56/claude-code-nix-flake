@@ -23,7 +23,7 @@
 in {
   programs.claude-code = {
     enable = true;
-    package = config.lib.test.mkStubPackage {};
+    package = null;
     commandsDir = commandsDir;
   };
 
