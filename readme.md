@@ -107,6 +107,16 @@ devenv shell
 # You may want to use e.g. `devenv shell zsh`, to enter non-bash shells.
 ```
 
+### Code Editor Support
+
+Look at the [Code Editor Support](https://devenv.sh/editor-support/vscode/) section of the
+devenv documentation for how to set up your editor.
+
+Basically:
+
+1. Install `direnv`.
+2. Install extension.
+
 ### Automatic Formatting
 
 All Nix files are automatically formatted with [Alejandra](https://github.com/kamadorueda/alejandra) when you commit changes within the shell. You can also format manually using the `format` command.
