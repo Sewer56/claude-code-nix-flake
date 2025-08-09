@@ -97,6 +97,8 @@ and a simple config:
 
 >[!WARNING] 
 > **Configuration files are modified in-place.** This module directly edits your existing Claude Code configuration files.
+>
+> Claude actively writes to `~/.claude.json` and `~/.claude/settings.json` so they can't be directly managed by Nix.
 
 ## JSON Configuration Merging Behaviour
 
@@ -148,14 +150,6 @@ Note how:
 - ⚠️  `permissions.deny` array is **completely replaced** (old values lost)
 
 This behaviour ensures predictable configuration management where your Nix specification defines the exact state of nested structures.
-
-## Rationale and approach
-
-Claude [currently has a bug where it can't read symlinked files](https://github.com/anthropics/claude-code/issues/764),
-which is why this flake uses the activation scripts to copy files into place (once the bug is resolved, the flake's API
-can remain the same but we can replace the scripts with actual nix config setup).
-
-Additionally, Claude writes to `~/.claude.json` so it can't be directly managed by Nix.
 
 ## Development
 
