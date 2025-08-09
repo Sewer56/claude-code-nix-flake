@@ -283,11 +283,12 @@ in {
         else if cfg.memory.text != null
         then ''
                     # Use a temporary file and install to ensure proper permissions
-                    $DRY_RUN_CMD cat > "$TMPDIR/claude_memory_temp.md" << 'EOF'
+                    TEMP_FILE=$($DRY_RUN_CMD mktemp)
+                    $DRY_RUN_CMD cat > "$TEMP_FILE" << 'EOF'
           ${cfg.memory.text}
           EOF
-                    $DRY_RUN_CMD install -m 0644 "$TMPDIR/claude_memory_temp.md" "$CLAUDE_MEMORY_FILE"
-                    $DRY_RUN_CMD rm -f "$TMPDIR/claude_memory_temp.md"
+                    $DRY_RUN_CMD install -m 0644 "$TEMP_FILE" "$CLAUDE_MEMORY_FILE"
+                    $DRY_RUN_CMD rm -f "$TEMP_FILE"
         ''
         else ''
           # Neither source nor text was set, do nothing
@@ -333,11 +334,12 @@ in {
                     MERGED_CONFIG=$($DRY_RUN_CMD ${pkgs.jq}/bin/jq -s '.[0] * .[1]' <(echo "$EXISTING_CONFIG") <(echo "$NEW_CONFIG"))
 
                     # Write the merged configuration to a temp file first
-                    $DRY_RUN_CMD echo "$MERGED_CONFIG" > "$TMPDIR/claude_config_temp.json"
+                    TEMP_FILE=$($DRY_RUN_CMD mktemp)
+                    $DRY_RUN_CMD echo "$MERGED_CONFIG" > "$TEMP_FILE"
 
                     # Use install to set permissions and copy the file
-                    $DRY_RUN_CMD install -m 0644 "$TMPDIR/claude_config_temp.json" "$CLAUDE_CONFIG_FILE"
-                    $DRY_RUN_CMD rm -f "$TMPDIR/claude_config_temp.json"
+                    $DRY_RUN_CMD install -m 0644 "$TEMP_FILE" "$CLAUDE_CONFIG_FILE"
+                    $DRY_RUN_CMD rm -f "$TEMP_FILE"
         ''
         else ''
           # No JSON configuration specified, do nothing
@@ -374,9 +376,10 @@ in {
                     MERGED_SETTINGS=$($DRY_RUN_CMD ${pkgs.jq}/bin/jq -s '.[0] * .[1]' <(echo "$EXISTING_SETTINGS") <(echo "$NEW_SETTINGS"))
 
                     # Write merged settings
-                    $DRY_RUN_CMD echo "$MERGED_SETTINGS" > "$TMPDIR/claude_settings_temp.json"
-                    $DRY_RUN_CMD install -m 0644 "$TMPDIR/claude_settings_temp.json" "$SETTINGS_FILE"
-                    $DRY_RUN_CMD rm -f "$TMPDIR/claude_settings_temp.json"
+                    TEMP_FILE=$($DRY_RUN_CMD mktemp)
+                    $DRY_RUN_CMD echo "$MERGED_SETTINGS" > "$TEMP_FILE"
+                    $DRY_RUN_CMD install -m 0644 "$TEMP_FILE" "$SETTINGS_FILE"
+                    $DRY_RUN_CMD rm -f "$TEMP_FILE"
         ''
         else ''
           # No settings.json configuration specified
