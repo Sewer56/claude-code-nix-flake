@@ -82,6 +82,27 @@ in {
       '';
     };
 
+    settings = mkOption {
+      type = types.attrsOf types.anything;
+      default = {};
+      description = ''
+        An attrset of settings to merge into ~/.claude.json.
+        Supports all JSON data types including nested objects.
+        Can override both top-level and nested fields.
+        Claude needs to be able to write to this file, so it is not directly managed by Nix.
+      '';
+      example = literalExpression ''
+        {
+          theme = "dark-daltonized";
+          autoUpdates = false;
+          tipsHistory = {
+            "new-user-warmup" = 1;
+            "shift-enter" = 201;
+          };
+        }
+      '';
+    };
+
     forceClean = mkOption {
       type = types.bool;
       default = false;
@@ -251,7 +272,7 @@ in {
       }
     '';
 
-    home.activation.setupClaudeMcpServers = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    home.activation.setupClaudeJsonConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
       CLAUDE_DIR="${baseDir}/.claude"
       CLAUDE_CONFIG_FILE="${baseDir}/.claude.json"
 
@@ -260,9 +281,9 @@ in {
       # Ensure the directory is usable by forcing permissions
       $DRY_RUN_CMD install -d -m 0755 "$CLAUDE_DIR"
 
-      # If mcpServers configuration is not empty
+      # If either mcpServers or settings configuration is not empty
       ${
-        if cfg.mcpServers != {}
+        if cfg.mcpServers != {} || cfg.settings != {}
         then ''
                     # Check if the config file exists
                     if [ -f "$CLAUDE_CONFIG_FILE" ]; then
@@ -273,14 +294,20 @@ in {
                       EXISTING_CONFIG="{}"
                     fi
 
-                    # Create a temporary file with the MCP server configuration
-                    NEW_MCP_CONFIG=$(cat <<'EOF'
-          ${builtins.toJSON {mcpServers = cfg.mcpServers;}}
+                    # Create a temporary file with the new configuration
+                    NEW_CONFIG=$(cat <<'EOF'
+          ${builtins.toJSON (cfg.settings
+            // (
+              if cfg.mcpServers != {}
+              then {mcpServers = cfg.mcpServers;}
+              else {}
+            ))}
           EOF
                     )
 
-                    # Merge the configurations (preserving existing content and adding/updating mcpServers)
-                    MERGED_CONFIG=$($DRY_RUN_CMD ${pkgs.jq}/bin/jq -s '.[0] * .[1]' <(echo "$EXISTING_CONFIG") <(echo "$NEW_MCP_CONFIG"))
+                    # Merge the configurations (preserving existing content and adding/updating new settings)
+                    # Use jq's recursive merge operator * to handle nested objects properly
+                    MERGED_CONFIG=$($DRY_RUN_CMD ${pkgs.jq}/bin/jq -s '.[0] * .[1]' <(echo "$EXISTING_CONFIG") <(echo "$NEW_CONFIG"))
 
                     # Write the merged configuration to a temp file first
                     $DRY_RUN_CMD echo "$MERGED_CONFIG" > "$TMPDIR/claude_config_temp.json"
@@ -290,7 +317,7 @@ in {
                     $DRY_RUN_CMD rm -f "$TMPDIR/claude_config_temp.json"
         ''
         else ''
-          # No MCP servers configured, do nothing
+          # No JSON configuration specified, do nothing
         ''
       }
     '';

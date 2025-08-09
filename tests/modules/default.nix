@@ -5,4 +5,5 @@
   memory-text = ./memory-text.nix;
   memory-source = ./memory-source.nix;
   mcp-servers = ./mcp-servers.nix;
+  settings = ./settings.nix;
 }

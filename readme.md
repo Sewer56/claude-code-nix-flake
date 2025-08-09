@@ -52,6 +52,14 @@ and a simple config:
           };
         };
       };
+      settings = {
+        theme = "dark-daltonized";
+        autoUpdates = false;
+        tipsHistory = {
+          "new-user-warmup" = 1;
+          "shift-enter" = 201;
+        };
+      };
     };
   }
 }
@@ -70,6 +78,7 @@ and a simple config:
 | `memory.text`   | string          | `null`             | Content to write to `~/.claude/CLAUDE.md`                            |
 | `memory.source` | path            | `null`             | File to copy to `~/.claude/CLAUDE.md` (takes precedence over `text`) |
 | `mcpServers`    | attrset         | `{}`               | MCP server configurations to merge into `~/.claude.json`             |
+| `settings`      | attrset         | `{}`               | General settings to merge into `~/.claude.json`                      |
 
 >[!CAUTION]
 > Due to a [Claude bug with symlinked files](https://github.com/anthropics/claude-code/issues/764), this module copies files instead of symlinking them. **Removed commands won't be deleted from your config** unless you use `forceClean=true`.
