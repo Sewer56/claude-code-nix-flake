@@ -6,6 +6,10 @@
 }:
 with lib; let
   cfg = config.programs.claude-code;
+  baseDir =
+    if cfg._testBasePath != null
+    then cfg._testBasePath
+    else "$HOME";
 in {
   options.programs.claude-code = {
     enable = mkEnableOption "Claude Code configuration";
@@ -96,6 +100,13 @@ in {
         When true, the module will not create backup files with the specified extension.
       '';
     };
+
+    _testBasePath = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      internal = true;
+      description = "Internal option for testing. Sets base path instead of $HOME.";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -111,7 +122,7 @@ in {
     home.activation.backupExistingClaudeFiles = mkIf (!cfg.skipBackup) (
       lib.hm.dag.entryAfter ["writeBoundary"] ''
         if [ -n "$HOME_MANAGER_BACKUP_EXT" ]; then
-          CLAUDE_DIR="$HOME/.claude"
+          CLAUDE_DIR="${baseDir}/.claude"
           CLAUDE_MEMORY_FILE="$CLAUDE_DIR/CLAUDE.md"
 
           BACKUP_EXT="$HOME_MANAGER_BACKUP_EXT"
@@ -145,7 +156,7 @@ in {
 
     home.activation.forceCleanClaudeConfig = mkIf cfg.forceClean (
       lib.hm.dag.entryAfter ["writeBoundary"] ''
-        CLAUDE_DIR="$HOME/.claude"
+        CLAUDE_DIR="${baseDir}/.claude"
         CLAUDE_MEMORY_FILE="$CLAUDE_DIR/CLAUDE.md"
         CLAUDE_COMMANDS_DIR="$CLAUDE_DIR/commands"
 
@@ -174,7 +185,7 @@ in {
     );
 
     home.activation.setupClaudeCommands = lib.hm.dag.entryAfter ["writeBoundary"] ''
-      CLAUDE_DIR="$HOME/.claude"
+      CLAUDE_DIR="${baseDir}/.claude"
       CLAUDE_COMMANDS_DIR="$CLAUDE_DIR/commands"
 
       # Create the directory if it doesn't exist with proper permissions
@@ -213,7 +224,7 @@ in {
     '';
 
     home.activation.setupClaudeMemory = lib.hm.dag.entryAfter ["writeBoundary"] ''
-      CLAUDE_DIR="$HOME/.claude"
+      CLAUDE_DIR="${baseDir}/.claude"
       CLAUDE_MEMORY_FILE="$CLAUDE_DIR/CLAUDE.md"
 
       $DRY_RUN_CMD mkdir -p "$CLAUDE_DIR"
@@ -241,8 +252,8 @@ in {
     '';
 
     home.activation.setupClaudeMcpServers = lib.hm.dag.entryAfter ["writeBoundary"] ''
-      CLAUDE_DIR="$HOME/.claude"
-      CLAUDE_CONFIG_FILE="$HOME/.claude.json"
+      CLAUDE_DIR="${baseDir}/.claude"
+      CLAUDE_CONFIG_FILE="${baseDir}/.claude.json"
 
       # Create directory if it doesn't exist with proper permissions
       $DRY_RUN_CMD mkdir -p "$CLAUDE_DIR"
