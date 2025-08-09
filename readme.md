@@ -1,15 +1,5 @@
 # Claude Nix
 
->[!CAUTION]
-> Claude [currently has a bug where it can't read symlinked files](https://github.com/anthropics/claude-code/issues/764),
-> so this module **does not manage its files using Nix's standard add-to-store-and-symlink approach. Instead it adds
-> them to the store, and then uses an activation script to **copy** the files to the right location. The main
-> consequence of this is that if you don't set the `forceClean` flag, removing e.g. a command from your config *won't
-> remove it from the produced config*.
->
-> `forceClean` exists to work around this, by cleaning up all commands *before* the current ones are copied in, **but it
-> is not able to preserve any non-Nix-tracked commands**, so use it with caution, and create backups.
-
 A Nix flake that provides a home-manager module for configuring Claude Code.
 
 Fork of [flyinggrizzly/claude-nix](https://github.com/flyinggrizzly/claude-nix), since former appears
@@ -32,7 +22,7 @@ Add this flake to your inputs:
 {
   inputs = {
     # ...
-    claude-nix.url = "github:flyinggrizzly/claude-nix";
+    claude-code-nix-flake.url = "github:Sewer56/claude-code-nix-flake";
   };
 }
 ```
@@ -44,7 +34,7 @@ and a simple config:
 {
   config = {
     imports = [
-      inputs.claude-nix.homeManagerModules.claude-code
+      inputs.claude-code-nix-flake.homeManagerModules.claude-code
     ];
 
     programs.claude-code = {
@@ -81,6 +71,15 @@ and a simple config:
 | `memory.source` | path            | `null`             | File to copy to `~/.claude/CLAUDE.md` (takes precedence over `text`) |
 | `mcpServers`    | attrset         | `{}`               | MCP server configurations to merge into `~/.claude.json`             |
 
+>[!CAUTION]
+> Claude [currently has a bug where it can't read symlinked files](https://github.com/anthropics/claude-code/issues/764),
+> so this module **does not manage its files using Nix's standard add-to-store-and-symlink approach. Instead it adds
+> them to the store, and then uses an activation script to **copy** the files to the right location. The main
+> consequence of this is that if you don't set the `forceClean` flag, removing e.g. a command from your config *won't
+> remove it from the produced config*.
+>
+> `forceClean` exists to work around this, by cleaning up all commands *before* the current ones are copied in, **but it
+> is not able to preserve any non-Nix-tracked commands**, so use it with caution, and create backups.
 
 ## Rationale and approach
 
@@ -102,8 +101,8 @@ Install devenv by following the [getting started guide](https://devenv.sh/gettin
 
 ```bash
 # Clone the repository
-git clone https://github.com/flyinggrizzly/claude-nix.git
-cd claude-nix
+git clone https://github.com/Sewer56/claude-code-nix-flake.git
+cd claude-code-nix-flake
 
 # Enter the development environment (will install dependencies automatically)
 devenv shell
