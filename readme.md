@@ -12,6 +12,9 @@
 
 A Nix flake that provides a home-manager module for configuring Claude Code.
 
+Fork of [flyinggrizzly/claude-nix](https://github.com/flyinggrizzly/claude-nix), since former appears
+to be unmaintained.
+
 ## Features
 
 - Install the Claude Code CLI package (optional)
