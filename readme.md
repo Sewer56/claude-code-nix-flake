@@ -52,12 +52,21 @@ and a simple config:
           };
         };
       };
-      settings = {
+      claudeJson = {
         theme = "dark-daltonized";
         autoUpdates = false;
         tipsHistory = {
           "new-user-warmup" = 1;
           "shift-enter" = 201;
+        };
+      };
+      settingsJson = {
+        permissions = {
+          allow = [
+            "WebFetch(domain:github.com)"
+            "Bash(mkdir:*)"
+          ];
+          deny = [];
         };
       };
     };
@@ -67,18 +76,19 @@ and a simple config:
 
 ## Configuration Options
 
-| Option          | Type            | Default            | Description                                                          |
-| --------------- | --------------- | ------------------ | -------------------------------------------------------------------- |
-| `enable`        | boolean         | `false`            | Enable Claude Code configuration                                     |
-| `commands`      | list of paths   | `[]`               | Individual command files to copy to `~/.claude/commands/`            |
-| `commandsDir`   | path            | `null`             | Directory of markdown files to copy as commands                      |
-| `package`       | package or null | `pkgs.claude-code` | Claude Code package to install (or null to not install)              |
-| `forceClean`    | boolean         | `false`            | Clean existing files before applying configuration                   |
-| `skipBackup`    | boolean         | `false`            | Skips backing up files even if the -`b <backup-ext> option is set`   |
-| `memory.text`   | string          | `null`             | Content to write to `~/.claude/CLAUDE.md`                            |
-| `memory.source` | path            | `null`             | File to copy to `~/.claude/CLAUDE.md` (takes precedence over `text`) |
-| `mcpServers`    | attrset         | `{}`               | MCP server configurations to merge into `~/.claude.json`             |
-| `settings`      | attrset         | `{}`               | General settings to merge into `~/.claude.json`                      |
+| Option          | Type          | Default            | Description                                                          |
+| --------------- | ------------- | ------------------ | -------------------------------------------------------------------- |
+| `enable`        | boolean       | `false`            | Enable Claude Code configuration management                          |
+| `package`       | package       | `pkgs.claude-code` | The Claude Code package to install                                   |
+| `commands`      | list of paths | `[]`               | Command files to install in `~/.claude/commands/`                    |
+| `commandsDir`   | path          | `null`             | Directory containing command files to install                        |
+| `memory.text`   | string        | `null`             | Content to write to `~/.claude/CLAUDE.md`                            |
+| `memory.source` | path          | `null`             | File to copy to `~/.claude/CLAUDE.md` (takes precedence over `text`) |
+| `mcpServers`    | attrset       | `{}`               | MCP server configurations to merge into `~/.claude.json`             |
+| `claudeJson`    | attrset       | `{}`               | General settings to merge into `~/.claude.json`                      |
+| `settingsJson`  | attrset       | `{}`               | Configuration to merge into `~/.claude/settings.json`                |
+| `forceClean`    | boolean       | `false`            | Clean existing files before applying configuration                   |
+| `skipBackup`    | boolean       | `false`            | Skip backing up existing files before applying configuration         |
 
 >[!CAUTION]
 > Due to a [Claude bug with symlinked files](https://github.com/anthropics/claude-code/issues/764), this module copies files instead of symlinking them. **Removed commands won't be deleted from your config** unless you use `forceClean=true`.

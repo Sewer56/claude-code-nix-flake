@@ -82,7 +82,7 @@ in {
       '';
     };
 
-    settings = mkOption {
+    claudeJson = mkOption {
       type = types.attrsOf types.anything;
       default = {};
       description = ''
@@ -98,6 +98,31 @@ in {
           tipsHistory = {
             "new-user-warmup" = 1;
             "shift-enter" = 201;
+          };
+        }
+      '';
+    };
+
+    settingsJson = mkOption {
+      type = types.attrsOf types.anything;
+      default = {};
+      description = ''
+        An attrset of settings to merge into ~/.claude/settings.json.
+        Supports all JSON data types including nested objects.
+        Can override both top-level and nested fields.
+        Claude needs to be able to write to this file, so it is not directly managed by Nix.
+      '';
+      example = literalExpression ''
+        {
+          "$schema" = "https://json.schemastore.org/claude-code-settings.json";
+          permissions = {
+            allow = [
+              "WebFetch(domain:example.com)"
+              "Bash(mkdir:*)"
+            ];
+            deny = [
+              "Bash(rm:*)"
+            ];
           };
         }
       '';
@@ -281,9 +306,9 @@ in {
       # Ensure the directory is usable by forcing permissions
       $DRY_RUN_CMD install -d -m 0755 "$CLAUDE_DIR"
 
-      # If either mcpServers or settings configuration is not empty
+      # If either mcpServers or claudeJson configuration is not empty
       ${
-        if cfg.mcpServers != {} || cfg.settings != {}
+        if cfg.mcpServers != {} || cfg.claudeJson != {}
         then ''
                     # Check if the config file exists
                     if [ -f "$CLAUDE_CONFIG_FILE" ]; then
@@ -296,7 +321,7 @@ in {
 
                     # Create a temporary file with the new configuration
                     NEW_CONFIG=$(cat <<'EOF'
-          ${builtins.toJSON (cfg.settings
+          ${builtins.toJSON (cfg.claudeJson
             // (
               if cfg.mcpServers != {}
               then {mcpServers = cfg.mcpServers;}
@@ -318,6 +343,45 @@ in {
         ''
         else ''
           # No JSON configuration specified, do nothing
+        ''
+      }
+    '';
+
+    home.activation.setupSettingsJsonConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      CLAUDE_DIR="${baseDir}/.claude"
+      SETTINGS_FILE="$CLAUDE_DIR/settings.json"
+
+      # Create directory if needed
+      $DRY_RUN_CMD mkdir -p "$CLAUDE_DIR"
+      $DRY_RUN_CMD install -d -m 0755 "$CLAUDE_DIR"
+
+      # Handle settings.json configuration
+      ${
+        if cfg.settingsJson != {}
+        then ''
+                    # Check if the settings file exists
+                    if [ -f "$SETTINGS_FILE" ]; then
+                      EXISTING_SETTINGS=$($DRY_RUN_CMD cat "$SETTINGS_FILE" || echo "{}")
+                    else
+                      EXISTING_SETTINGS="{}"
+                    fi
+
+                    # Create new settings
+                    NEW_SETTINGS=$(cat <<'EOF'
+          ${builtins.toJSON cfg.settingsJson}
+          EOF
+                    )
+
+                    # Merge settings
+                    MERGED_SETTINGS=$($DRY_RUN_CMD ${pkgs.jq}/bin/jq -s '.[0] * .[1]' <(echo "$EXISTING_SETTINGS") <(echo "$NEW_SETTINGS"))
+
+                    # Write merged settings
+                    $DRY_RUN_CMD echo "$MERGED_SETTINGS" > "$TMPDIR/claude_settings_temp.json"
+                    $DRY_RUN_CMD install -m 0644 "$TMPDIR/claude_settings_temp.json" "$SETTINGS_FILE"
+                    $DRY_RUN_CMD rm -f "$TMPDIR/claude_settings_temp.json"
+        ''
+        else ''
+          # No settings.json configuration specified
         ''
       }
     '';

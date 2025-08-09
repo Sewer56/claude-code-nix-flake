@@ -26,8 +26,8 @@
   programs.claude-code = {
     enable = true;
     package = config.lib.test.mkStubPackage {};
-    # Test general settings override
-    settings = {
+    # Test general settings override using claudeJson
+    claudeJson = {
       theme = "dark-daltonized";
       autoUpdates = false;
       fallbackAvailableWarningThreshold = 0.2;
@@ -38,7 +38,7 @@
       };
       newTopLevelField = "test-value";
     };
-    # Test that mcpServers still works alongside settings
+    # Test that mcpServers still works alongside claudeJson
     mcpServers = {
       test-server = {
         type = "stdio";
@@ -105,7 +105,7 @@
       exit 1
     fi
 
-    # Check that mcpServers still works alongside settings
+    # Check that mcpServers still works alongside claudeJson
     if ! ${pkgs.jq}/bin/jq -e '.mcpServers."test-server"' home-files/.claude.json > /dev/null; then
       echo "ERROR: test-server from mcpServers was not found"
       exit 1
