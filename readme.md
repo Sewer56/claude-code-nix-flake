@@ -10,6 +10,7 @@ to be unmaintained.
 - Install the Claude Code CLI package (optional)
 - Configure command files in `~/.claude/commands/` by passing a directory and/or a list of individual files
 - Configure agent files in `~/.claude/agents/` by passing a directory and/or a list of individual files
+- Configure hook files in `~/.claude/hooks/` by passing a directory and/or a list of individual files
 - Manage Claude memory in `~/.claude/CLAUDE.md`
 - Configure MCP servers in `~/.claude.json`
 - Support for standalone home-manager
@@ -44,6 +45,8 @@ and a simple config:
       commands = [ ./path/to/extra/command.md ];
       agentsDir = ./agent-directory;
       agents = [ ./path/to/extra/agent.md ];
+      hooksDir = ./hook-directory;
+      hooks = [ ./path/to/extra/hook.sh ];
       memory.source = ./my/claude.md;
       mcpServers = {
         github = {
@@ -87,6 +90,8 @@ and a simple config:
 | `commandsDir`   | path          | `null`             | Directory containing command files to install                        |
 | `agents`        | list of paths | `[]`               | Agent files to install in `~/.claude/agents/`                        |
 | `agentsDir`     | path          | `null`             | Directory containing agent files to install                          |
+| `hooks`         | list of paths | `[]`               | Hook files to install in `~/.claude/hooks/`                          |
+| `hooksDir`      | path          | `null`             | Directory containing hook files to install                           |
 | `memory.text`   | string        | `null`             | Content to write to `~/.claude/CLAUDE.md`                            |
 | `memory.source` | path          | `null`             | File to copy to `~/.claude/CLAUDE.md` (takes precedence over `text`) |
 | `mcpServers`    | attrset       | `{}`               | MCP server configurations to merge into `~/.claude.json`             |
@@ -96,9 +101,9 @@ and a simple config:
 | `skipBackup`    | boolean       | `false`            | Skip backing up existing files before applying configuration         |
 
 >[!CAUTION]
-> Due to a [Claude bug with symlinked files](https://github.com/anthropics/claude-code/issues/764), this module copies files instead of symlinking them. **Removed commands and agents won't be deleted from your config** unless you use `forceClean=true`.
+> Due to a [Claude bug with symlinked files](https://github.com/anthropics/claude-code/issues/764), this module copies files instead of symlinking them. **Removed commands, agents, and hooks won't be deleted from your config** unless you use `forceClean=true`.
 >
-> **Warning:** `forceClean` deletes ALL existing commands and agents (including non-Nix ones) before adding new ones. Create backups first.
+> **Warning:** `forceClean` deletes ALL existing commands, agents, and hooks (including non-Nix ones) before adding new ones. Create backups first.
 
 >[!WARNING] 
 > **Configuration files are modified in-place.** This module directly edits your existing Claude Code configuration files.

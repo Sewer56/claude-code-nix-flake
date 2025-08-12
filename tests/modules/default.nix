@@ -7,6 +7,8 @@
   commands-dir = import ./commands-dir/commands-dir.nix;
   basic-agents = import ./basic-agents/basic-agents.nix;
   agents-dir = import ./agents-dir/agents-dir.nix;
+  basic-hooks = import ./basic-hooks/basic-hooks.nix;
+  hooks-dir = import ./hooks-dir/hooks-dir.nix;
   memory-text = import ./memory-text/memory-text.nix;
   memory-source = import ./memory-source/memory-source.nix;
   mcp-servers = import ./mcp-servers/mcp-servers.nix;

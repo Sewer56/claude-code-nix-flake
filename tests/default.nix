@@ -148,6 +148,34 @@
                 else []
             ) (lib.attrNames (builtins.readDir cfg.agentsDir)))
           ))
+          # Hook files
+          // (lib.listToAttrs (lib.map (
+              hookPath: let
+                filename = builtins.baseNameOf hookPath;
+                parts = builtins.match "^[^-]+-(.*)$" filename;
+                finalName =
+                  if parts == null
+                  then filename
+                  else builtins.elemAt parts 0;
+              in {
+                name = ".claude/hooks/${finalName}";
+                value = {source = hookPath;};
+              }
+            )
+            cfg.hooks))
+          // (lib.optionalAttrs (cfg.hooksDir != null) (
+            # Files from hooksDir
+            lib.listToAttrs (lib.concatMap (
+              hookFile: let
+                basename = builtins.baseNameOf hookFile;
+              in [
+                {
+                  name = ".claude/hooks/${basename}";
+                  value = {source = "${cfg.hooksDir}/${basename}";};
+                }
+              ]
+            ) (lib.attrNames (builtins.readDir cfg.hooksDir)))
+          ))
           # Note: JSON files need custom merging logic, handled in individual tests
         );
       })

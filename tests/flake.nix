@@ -39,9 +39,11 @@
           test-disabled = tests.run.disabled;
           test-basic-agents = tests.run.basic-agents;
           test-basic-commands = tests.run.basic-commands;
+          test-basic-hooks = tests.run.basic-hooks;
           test-agents-dir = tests.run.agents-dir;
           test-claude-json = tests.run.claude-json;
           test-commands-dir = tests.run.commands-dir;
+          test-hooks-dir = tests.run.hooks-dir;
           test-mcp-servers = tests.run.mcp-servers;
           test-memory-source = tests.run.memory-source;
           test-memory-text = tests.run.memory-text;

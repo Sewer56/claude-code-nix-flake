@@ -38,6 +38,18 @@ in {
       description = "Directory containing agent files (markdown) to be copied to ~/.claude/agents/. Individual agents specified in the agents option will take precedence over files with the same name from this directory.";
     };
 
+    hooks = mkOption {
+      type = types.listOf types.path;
+      default = [];
+      description = "List of file paths to be copied to ~/.claude/hooks/. These take precedence over files from hooksDir.";
+    };
+
+    hooksDir = mkOption {
+      type = types.nullOr types.path;
+      default = null;
+      description = "Directory containing hook files (shell scripts) to be copied to ~/.claude/hooks/. Individual hooks specified in the hooks option will take precedence over files with the same name from this directory.";
+    };
+
     package = mkOption {
       type = types.nullOr types.package;
       default = pkgs.claude-code;
@@ -219,6 +231,18 @@ in {
           ''
           else ""
         }
+
+        ${
+          if cfg.hooks != [] || cfg.hooksDir != null
+          then ''
+            CLAUDE_HOOKS_DIR="$CLAUDE_DIR/hooks"
+            if [ -d "$CLAUDE_HOOKS_DIR" ]; then
+              echo "Backing up existing hooks directory..."
+              $DRY_RUN_CMD mv "$CLAUDE_HOOKS_DIR" "$CLAUDE_HOOKS_DIR.$BACKUP_EXT"
+            fi
+          ''
+          else ""
+        }
       ''
     );
 
@@ -257,6 +281,18 @@ in {
             if [ -d "$CLAUDE_AGENTS_DIR" ]; then
               echo "Cleaning up existing agents directory..."
               $DRY_RUN_CMD rm -rf "$CLAUDE_AGENTS_DIR"
+            fi
+          ''
+          else ""
+        }
+
+        ${
+          if cfg.hooks != [] || cfg.hooksDir != null
+          then ''
+            CLAUDE_HOOKS_DIR="$CLAUDE_DIR/hooks"
+            if [ -d "$CLAUDE_HOOKS_DIR" ]; then
+              echo "Cleaning up existing hooks directory..."
+              $DRY_RUN_CMD rm -rf "$CLAUDE_HOOKS_DIR"
             fi
           ''
           else ""
@@ -340,6 +376,45 @@ in {
           ''
         )
         cfg.agents}
+    '';
+
+    home.activation.setupClaudeHooks = lib.hm.dag.entryAfter ["linkGeneration"] ''
+      CLAUDE_DIR="${baseDir}/.claude"
+      CLAUDE_HOOKS_DIR="$CLAUDE_DIR/hooks"
+
+      # Create the directory if it doesn't exist with proper permissions
+      $DRY_RUN_CMD mkdir -p "$CLAUDE_HOOKS_DIR"
+      # Ensure the directory is usable by forcing permissions
+      $DRY_RUN_CMD install -d -m 0755 "$CLAUDE_HOOKS_DIR"
+
+      # First, copy hook files from hooksDir if specified
+      ${
+        if cfg.hooksDir != null
+        then ''
+          # Find all files and copy them using install to set permissions properly
+          for HOOK_FILE in $(find "${cfg.hooksDir}" -type f); do
+            DEST_FILE="$CLAUDE_HOOKS_DIR/$(basename "$HOOK_FILE")"
+            $DRY_RUN_CMD install -m 0755 "$HOOK_FILE" "$DEST_FILE"
+          done
+        ''
+        else ''
+          # No hooksDir specified, skipping
+        ''
+      }
+
+      ${concatMapStringsSep "\n" (
+          hookPath: let
+            filename = builtins.baseNameOf hookPath;
+            parts = builtins.match "^[^-]+-(.*)$" filename;
+            finalName =
+              if parts == null
+              then filename
+              else builtins.elemAt parts 0;
+          in ''
+            $DRY_RUN_CMD install -m 0755 "${hookPath}" "$CLAUDE_HOOKS_DIR/${finalName}"
+          ''
+        )
+        cfg.hooks}
     '';
 
     home.activation.setupClaudeMemory = lib.hm.dag.entryAfter ["linkGeneration"] ''
