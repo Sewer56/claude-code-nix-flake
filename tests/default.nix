@@ -44,7 +44,20 @@
       })
 
       # Test helper module: create home.file entries for NMT testing.
-      # The project edits files in place. This creates the temporary dummies to test against.
+      #
+      # IMPORTANT: This duplicates some of the file processing logic from lib/claude-code.nix
+      # because the real module uses activation scripts (which NMT cannot verify)
+      # while tests require static home.file declarations.
+      #
+      # (Root cause is, claude-code currently does not work with symlinks, so we need to copy files!)
+      #
+      # DUPLICATED LOGIC (keep synchronized):
+      # - Command filename pattern matching (^[^-]+-(.*)$)
+      # - Agent filename pattern matching (^[^-]+-(.*)$)
+      # - Directory scanning for .md files in commandsDir/agentsDir
+      #
+      # When modifying command/agent processing in lib/claude-code.nix,
+      # ensure this test helper stays synchronized to avoid test/implementation drift.
       ({
         config,
         lib,
