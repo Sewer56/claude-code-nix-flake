@@ -78,7 +78,7 @@
     echo "🧪 Running NMT tests for Claude Code module..."
     echo ""
     cd "${config.env.DEVENV_ROOT}/tests"
-    nix-shell -A run.all
+    nix run .#tests
   '';
 
   scripts.run-test.exec = ''
@@ -103,7 +103,7 @@
     echo "🧪 Running NMT test: $1"
     echo ""
     cd "${config.env.DEVENV_ROOT}/tests"
-    nix-shell -A "run.$1"
+    nix run ".#test-$1"
   '';
 
   enterShell = ''

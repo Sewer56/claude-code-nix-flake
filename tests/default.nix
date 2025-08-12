@@ -4,9 +4,21 @@
   enableBig ? true,
   enableLegacyIfd ? false,
   home-manager ?
-    fetchTarball {
-      url = "https://github.com/nix-community/home-manager/archive/master.tar.gz";
-    },
+    builtins.throw ''
+      ERROR: home-manager path not provided.
+
+      This test suite requires a specific version of home-manager to be passed explicitly.
+
+      Please run tests using the flake interface instead of directly calling this file:
+        cd tests && nix run .#tests
+        cd tests && nix run .#test-<name>
+
+      Or from the project root:
+        run-tests
+        run-test <name>
+
+      This ensures the locked home-manager version from flake.lock is used.
+    '',
 }: let
   # Import Home Manager's extended lib and test setup
   lib = import "${home-manager}/modules/lib/stdlib-extended.nix" pkgs.lib;

@@ -2,14 +2,14 @@
   description = "Tests for claude-code Home Manager module";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-
-    home-manager = {
-      url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
+    # Reference the parent flake to inherit its locked versions
+    parent-flake = {
+      url = "path:..";
     };
 
-    flake-utils.url = "github:numtide/flake-utils";
+    nixpkgs.follows = "parent-flake/nixpkgs";
+    home-manager.follows = "parent-flake/home-manager";
+    flake-utils.follows = "parent-flake/flake-utils";
   };
 
   outputs = {
@@ -17,6 +17,7 @@
     nixpkgs,
     home-manager,
     flake-utils,
+    parent-flake,
   }:
     flake-utils.lib.eachDefaultSystem (
       system: let
@@ -33,8 +34,7 @@
           # All tests
           tests = tests.run.all;
 
-          # Individual test packages (note: these need to be run with nix-shell)
-          # Use: cd tests && nix-shell -A run.test-name
+          # Individual test packages
           test-disabled = tests.run.disabled;
           test-basic-agents = tests.run.basic-agents;
           test-basic-commands = tests.run.basic-commands;
@@ -45,6 +45,37 @@
           test-memory-source = tests.run.memory-source;
           test-memory-text = tests.run.memory-text;
           test-settings-json = tests.run.settings-json;
+        };
+
+        # Make tests runnable as apps with wrapper scripts
+        apps = let
+          mkTestApp = testName:
+            flake-utils.lib.mkApp {
+              drv = pkgs.writeShellScriptBin "run-${testName}" ''
+                echo "Running ${testName} test using locked home-manager version..."
+                nix-shell --expr '
+                  let
+                    pkgs = import <nixpkgs> {};
+                    tests = import ./default.nix {
+                      inherit pkgs;
+                      home-manager = "${home-manager.outPath}";
+                    };
+                  in tests.run.${testName}
+                '
+              '';
+            };
+        in {
+          tests = mkTestApp "all";
+          test-disabled = mkTestApp "disabled";
+          test-basic-agents = mkTestApp "basic-agents";
+          test-basic-commands = mkTestApp "basic-commands";
+          test-agents-dir = mkTestApp "agents-dir";
+          test-claude-json = mkTestApp "claude-json";
+          test-commands-dir = mkTestApp "commands-dir";
+          test-mcp-servers = mkTestApp "mcp-servers";
+          test-memory-source = mkTestApp "memory-source";
+          test-memory-text = mkTestApp "memory-text";
+          test-settings-json = mkTestApp "settings-json";
         };
 
         # Development shell for running tests
