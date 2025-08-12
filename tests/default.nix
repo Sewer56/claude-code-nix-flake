@@ -3,7 +3,10 @@
   pkgs ? import <nixpkgs> {},
   enableBig ? true,
   enableLegacyIfd ? false,
-  home-manager ? /home/sewer/projects/home-manager,
+  home-manager ?
+    fetchTarball {
+      url = "https://github.com/nix-community/home-manager/archive/master.tar.gz";
+    },
 }: let
   # Import Home Manager's extended lib and test setup
   lib = import "${home-manager}/modules/lib/stdlib-extended.nix" pkgs.lib;
@@ -89,6 +92,37 @@
             # Memory from source
             ".claude/CLAUDE.md".source = cfg.memory.source;
           })
+          # Agent files
+          // (lib.listToAttrs (lib.map (
+              agentPath: let
+                filename = builtins.baseNameOf agentPath;
+                parts = builtins.match "^[^-]+-(.*)$" filename;
+                finalName =
+                  if parts == null
+                  then filename
+                  else builtins.elemAt parts 0;
+              in {
+                name = ".claude/agents/${finalName}";
+                value = {source = agentPath;};
+              }
+            )
+            cfg.agents))
+          // (lib.optionalAttrs (cfg.agentsDir != null) (
+            # Files from agentsDir
+            lib.listToAttrs (lib.concatMap (
+              agentFile: let
+                basename = builtins.baseNameOf agentFile;
+              in
+                if lib.hasSuffix ".md" basename
+                then [
+                  {
+                    name = ".claude/agents/${basename}";
+                    value = {source = "${cfg.agentsDir}/${basename}";};
+                  }
+                ]
+                else []
+            ) (lib.attrNames (builtins.readDir cfg.agentsDir)))
+          ))
           # Note: JSON files need custom merging logic, handled in individual tests
         );
       })

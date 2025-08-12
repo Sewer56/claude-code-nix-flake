@@ -36,7 +36,9 @@
           # Individual test packages (note: these need to be run with nix-shell)
           # Use: cd tests && nix-shell -A run.test-name
           test-disabled = tests.run.disabled;
+          test-basic-agents = tests.run.basic-agents;
           test-basic-commands = tests.run.basic-commands;
+          test-agents-dir = tests.run.agents-dir;
           test-claude-json = tests.run.claude-json;
           test-commands-dir = tests.run.commands-dir;
           test-mcp-servers = tests.run.mcp-servers;

@@ -1,8 +1,8 @@
 {
   pkgs,
-  lib,
+  # lib,
   config,
-  inputs,
+  # inputs,
   ...
 }: {
   # https://devenv.sh/basics/
@@ -87,7 +87,9 @@
       echo "Usage: run-test <test-name>"
       echo ""
       echo "Available tests:"
+      echo "  • basic-agents"
       echo "  • basic-commands"
+      echo "  • agents-dir"
       echo "  • claude-json"
       echo "  • commands-dir"
       echo "  • disabled"
