@@ -1,8 +1,8 @@
 {
   pkgs,
-  lib,
+  # lib,
   config,
-  inputs,
+  # inputs,
   ...
 }: {
   # https://devenv.sh/basics/
@@ -78,7 +78,7 @@
     echo "🧪 Running NMT tests for Claude Code module..."
     echo ""
     cd "${config.env.DEVENV_ROOT}/tests"
-    nix-shell -A run.all
+    nix run .#tests
   '';
 
   scripts.run-test.exec = ''
@@ -87,7 +87,9 @@
       echo "Usage: run-test <test-name>"
       echo ""
       echo "Available tests:"
+      echo "  • basic-agents"
       echo "  • basic-commands"
+      echo "  • agents-dir"
       echo "  • claude-json"
       echo "  • commands-dir"
       echo "  • disabled"
@@ -101,7 +103,7 @@
     echo "🧪 Running NMT test: $1"
     echo ""
     cd "${config.env.DEVENV_ROOT}/tests"
-    nix-shell -A "run.$1"
+    nix run ".#test-$1"
   '';
 
   enterShell = ''

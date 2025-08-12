@@ -3,7 +3,22 @@
   pkgs ? import <nixpkgs> {},
   enableBig ? true,
   enableLegacyIfd ? false,
-  home-manager ? /home/sewer/projects/home-manager,
+  home-manager ?
+    builtins.throw ''
+      ERROR: home-manager path not provided.
+
+      This test suite requires a specific version of home-manager to be passed explicitly.
+
+      Please run tests using the flake interface instead of directly calling this file:
+        cd tests && nix run .#tests
+        cd tests && nix run .#test-<name>
+
+      Or from the project root:
+        run-tests
+        run-test <name>
+
+      This ensures the locked home-manager version from flake.lock is used.
+    '',
 }: let
   # Import Home Manager's extended lib and test setup
   lib = import "${home-manager}/modules/lib/stdlib-extended.nix" pkgs.lib;
@@ -41,7 +56,20 @@
       })
 
       # Test helper module: create home.file entries for NMT testing.
-      # The project edits files in place. This creates the temporary dummies to test against.
+      #
+      # IMPORTANT: This duplicates some of the file processing logic from lib/claude-code.nix
+      # because the real module uses activation scripts (which NMT cannot verify)
+      # while tests require static home.file declarations.
+      #
+      # (Root cause is, claude-code currently does not work with symlinks, so we need to copy files!)
+      #
+      # DUPLICATED LOGIC (keep synchronized):
+      # - Command filename pattern matching (^[^-]+-(.*)$)
+      # - Agent filename pattern matching (^[^-]+-(.*)$)
+      # - Directory scanning for .md files in commandsDir/agentsDir
+      #
+      # When modifying command/agent processing in lib/claude-code.nix,
+      # ensure this test helper stays synchronized to avoid test/implementation drift.
       ({
         config,
         lib,
@@ -89,6 +117,37 @@
             # Memory from source
             ".claude/CLAUDE.md".source = cfg.memory.source;
           })
+          # Agent files
+          // (lib.listToAttrs (lib.map (
+              agentPath: let
+                filename = builtins.baseNameOf agentPath;
+                parts = builtins.match "^[^-]+-(.*)$" filename;
+                finalName =
+                  if parts == null
+                  then filename
+                  else builtins.elemAt parts 0;
+              in {
+                name = ".claude/agents/${finalName}";
+                value = {source = agentPath;};
+              }
+            )
+            cfg.agents))
+          // (lib.optionalAttrs (cfg.agentsDir != null) (
+            # Files from agentsDir
+            lib.listToAttrs (lib.concatMap (
+              agentFile: let
+                basename = builtins.baseNameOf agentFile;
+              in
+                if lib.hasSuffix ".md" basename
+                then [
+                  {
+                    name = ".claude/agents/${basename}";
+                    value = {source = "${cfg.agentsDir}/${basename}";};
+                  }
+                ]
+                else []
+            ) (lib.attrNames (builtins.readDir cfg.agentsDir)))
+          ))
           # Note: JSON files need custom merging logic, handled in individual tests
         );
       })

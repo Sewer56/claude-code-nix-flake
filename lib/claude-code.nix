@@ -26,6 +26,18 @@ in {
       description = "Directory containing command files (markdown) to be copied to ~/.claude/commands/. Individual commands specified in the commands option will take precedence over files with the same name from this directory.";
     };
 
+    agents = mkOption {
+      type = types.listOf types.path;
+      default = [];
+      description = "List of file paths to be copied to ~/.claude/agents/. These take precedence over files from agentsDir.";
+    };
+
+    agentsDir = mkOption {
+      type = types.nullOr types.path;
+      default = null;
+      description = "Directory containing agent files (markdown) to be copied to ~/.claude/agents/. Individual agents specified in the agents option will take precedence over files with the same name from this directory.";
+    };
+
     package = mkOption {
       type = types.nullOr types.package;
       default = pkgs.claude-code;
@@ -195,6 +207,18 @@ in {
           ''
           else ""
         }
+
+        ${
+          if cfg.agents != [] || cfg.agentsDir != null
+          then ''
+            CLAUDE_AGENTS_DIR="$CLAUDE_DIR/agents"
+            if [ -d "$CLAUDE_AGENTS_DIR" ]; then
+              echo "Backing up existing agents directory..."
+              $DRY_RUN_CMD mv "$CLAUDE_AGENTS_DIR" "$CLAUDE_AGENTS_DIR.$BACKUP_EXT"
+            fi
+          ''
+          else ""
+        }
       ''
     );
 
@@ -221,6 +245,18 @@ in {
             if [ -d "$CLAUDE_COMMANDS_DIR" ]; then
               echo "Cleaning up existing commands directory..."
               $DRY_RUN_CMD rm -rf "$CLAUDE_COMMANDS_DIR"
+            fi
+          ''
+          else ""
+        }
+
+        ${
+          if cfg.agents != [] || cfg.agentsDir != null
+          then ''
+            CLAUDE_AGENTS_DIR="$CLAUDE_DIR/agents"
+            if [ -d "$CLAUDE_AGENTS_DIR" ]; then
+              echo "Cleaning up existing agents directory..."
+              $DRY_RUN_CMD rm -rf "$CLAUDE_AGENTS_DIR"
             fi
           ''
           else ""
@@ -265,6 +301,45 @@ in {
           ''
         )
         cfg.commands}
+    '';
+
+    home.activation.setupClaudeAgents = lib.hm.dag.entryAfter ["linkGeneration"] ''
+      CLAUDE_DIR="${baseDir}/.claude"
+      CLAUDE_AGENTS_DIR="$CLAUDE_DIR/agents"
+
+      # Create the directory if it doesn't exist with proper permissions
+      $DRY_RUN_CMD mkdir -p "$CLAUDE_AGENTS_DIR"
+      # Ensure the directory is usable by forcing permissions
+      $DRY_RUN_CMD install -d -m 0755 "$CLAUDE_AGENTS_DIR"
+
+      # First, copy markdown files from agentsDir if specified
+      ${
+        if cfg.agentsDir != null
+        then ''
+          # Find all .md files and copy them using install to set permissions properly
+          for AGENT_FILE in $(find "${cfg.agentsDir}" -type f -name "*.md"); do
+            DEST_FILE="$CLAUDE_AGENTS_DIR/$(basename "$AGENT_FILE")"
+            $DRY_RUN_CMD install -m 0644 "$AGENT_FILE" "$DEST_FILE"
+          done
+        ''
+        else ''
+          # No agentsDir specified, skipping
+        ''
+      }
+
+      ${concatMapStringsSep "\n" (
+          agentPath: let
+            filename = builtins.baseNameOf agentPath;
+            parts = builtins.match "^[^-]+-(.*)$" filename;
+            finalName =
+              if parts == null
+              then filename
+              else builtins.elemAt parts 0;
+          in ''
+            $DRY_RUN_CMD install -m 0644 "${agentPath}" "$CLAUDE_AGENTS_DIR/${finalName}"
+          ''
+        )
+        cfg.agents}
     '';
 
     home.activation.setupClaudeMemory = lib.hm.dag.entryAfter ["linkGeneration"] ''
