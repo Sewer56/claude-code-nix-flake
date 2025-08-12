@@ -13,11 +13,12 @@
   };
 
   outputs = {
+    # These 2 args are needed to inherit the parent. Please leave them as is.
     self,
+    parent-flake,
     nixpkgs,
     home-manager,
     flake-utils,
-    parent-flake,
   }:
     flake-utils.lib.eachDefaultSystem (
       system: let
