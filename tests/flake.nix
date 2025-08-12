@@ -49,6 +49,8 @@
         };
 
         # Make tests runnable as apps with wrapper scripts
+        # NMT will complain if we use the flake based `nix run` or `nix shell`,
+        # so we have to wrap each test in a legacy style script.
         apps = let
           mkTestApp = testName:
             flake-utils.lib.mkApp {
