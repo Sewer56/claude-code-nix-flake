@@ -1,3 +1,8 @@
+# Deprecated
+
+This flake has been upstreamed to `home-manager` as `programs.claude-code`, now that `claude-code` has had the symlink issue fixed.
+This repository is no longer maintained, use the upstream package.
+
 # Claude Nix
 
 A Nix flake that provides a home-manager module for configuring Claude Code.
